@@ -1,30 +1,6 @@
-_ = require 'underscore'
-###
-from: 
-to:
-    1
-    push: true
+#_ = require 'underscore'
 
-from: 2
-to: 1
-push: true
-
-graph = [
-    from: 0
-    to: [15, 14]
-    to_a: [0]
-,
-    from: 1
-    to: []
-    to_down: [3]
-,
-
-
-
-]
-###
-
-raw_graph:
+raw_graph =
     flat_neighbors:
         0: [15, 14]
         2: [11]
@@ -32,7 +8,7 @@ raw_graph:
         9: [12]
         10: [13]
         14: [15]
-    down_neighbors: 
+    down_neighbors:
         0: [{position: 0, letter: 'A'}]
         1: [{position: 3, letter: 'A'}]
         2: [
@@ -60,7 +36,7 @@ raw_graph:
         14: [{position: 0, letter: 'A'} ]
         15: [{position: 0, letter: 'A'} ]
 
-    jump_neighbors: 
+    jump_neighbors:
         A:
             2: [{position: 5, letter: 'C'}]
             4: [
@@ -70,13 +46,12 @@ raw_graph:
             7: [{position: 15, letter: 'B'}]
             8: [{position: 12, letter: 'C'}]
             9: [{position: 15, letter: 'A'}]
-        B: 
+        B:
             6: [{position: 0, letter: 'C'}]
             10: [{position: 3, letter: 'C'}]
             13: [{position: 14, letter: 'C'}]
         C:
             6: [{position: 7, letter: 'C'}]
-
 
 
 start = {position: 11, stack: ['A']}
@@ -90,18 +65,18 @@ immutable_pop = (stack) ->
     stack[0...stack.length - 1]
 
 neighbors = (state) ->
-    flat_neighbors = 
+    flat_neighbors =
         for position in graph.flat_neighbors[state.position]
             position: position
             stack: state.stack
 
-    down_neighbors = 
+    down_neighbors =
         for {position, letter} in graph.down_neighbors[state.position]
             position: position
             stack: immutable_push state.stack, letter
 
-    up_neighbors = 
-        if state.stack.length > 0 
+    up_neighbors =
+        if state.stack.length > 0
             top = _.last state.stack
             for position in graph.up_neighbors[top][state.position]
                 position: position
@@ -109,18 +84,43 @@ neighbors = (state) ->
         else
             []
 
-    jump_neighbors = 
+    jump_neighbors =
         if state.stack.length > 0
             top = _.last state.stack
             for {position, letter} in graph.jump_neighbors[top][state.position]
-                position: position, 
+                position: position,
                 stack: immutable_push (immutable_pop state.stack), letter
         else
             []
 
     _.concat flat_neighbors, down_neighbors, up_neighbors, jump_neighbors
 
+echo = console.log
 
+generate_graph = (raw_graph) ->
+    flat_neighbors = {}
+    for node in [0..15]
+        flat_neighbors[node] = []
+    for from, tos of raw_graph.flat_neighbors
+        flat_neighbors[from] = flat_neighbors[from].concat(tos)
+    for from, tos of raw_graph.flat_neighbors
+        for back_to in tos
+            flat_neighbors[back_to].push(parseInt(from))
 
+    down_neighbors = {}
+    for node in [0..15]
+        down_neighbors[node] = raw_graph.down_neighbors[node] ? []
 
+    up_neighbors = {}
+    for letter in 'ABC'  # initialize
+        up_neighbors[letter] = {}
+        for node in [0..15]
+            up_neighbors[letter][node] = []
 
+    for from, tos of raw_graph.down_neighbors
+        for to in tos
+            up_neighbors[to.letter][to.position].push(from)
+
+    {flat_neighbors, down_neighbors, up_neighbors}
+
+console.log generate_graph raw_graph
