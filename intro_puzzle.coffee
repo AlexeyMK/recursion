@@ -104,6 +104,12 @@ get_neighbors = (state) ->
 
 echo = console.log
 
+state_tostr = (state) ->
+    "#{state.position}, #{state.stack.join()}"
+
+state_equals = (first, other) ->
+    state_tostr(first) == state_tostr(other)
+
 generate_graph = (raw_graph) ->
     flat_neighbors = {}
     for node in [0..15]
@@ -154,24 +160,26 @@ shortest_path = (from, to, graph) ->
     # state on stack: [current_from, [history]]
     queue = [[from, []]]
     history_size = 0
+    explored = [state_tostr(from)] # store states as strings
 
     while true
         [current, history] = queue[0]
+        queue = queue[1..]
         if history_size < history.length
-            echo "now at paths of lengths #{history.length}"
+            echo """now at paths of lengths #{history.length},
+              visited #{explored.length}"""
             history_size = history.length
 
-
-        if current.position == to.position and
-           current.stack.toString() == to.stack.toString()
+        if state_equals(current, to)
             return history
         else
             new_history = immutable_push(history, current)
             neighbors = get_neighbors current
-            queued_neighbors =
-                for neighbor in neighbors
-                    [neighbor, new_history]
-            queue = queue[1..].concat(queued_neighbors)
+            for neighbor in neighbors
+                neighbor_str = state_tostr(neighbor)
+                if neighbor_str not in explored
+                    explored.push(neighbor_str)
+                    queue.push([neighbor, new_history])
 
 graph = generate_graph raw_graph
 echo shortest_path(start, end, graph)
