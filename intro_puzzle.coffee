@@ -121,6 +121,26 @@ generate_graph = (raw_graph) ->
         for to in tos
             up_neighbors[to.letter][to.position].push(from)
 
-    {flat_neighbors, down_neighbors, up_neighbors}
+    jump_neighbors = {}
+    for letter in 'ABC'
+        jump_neighbors[letter] = {}
+        for node in [0..15]
+            jump_neighbors[letter][node] = []
+
+    # forward edges
+    for letter, pairs of raw_graph.jump_neighbors
+        for from, tos of pairs
+            jump_neighbors[letter][from] =
+                jump_neighbors[letter][from].concat(tos)
+
+    # back edges
+    for letter, pairs of raw_graph.jump_neighbors
+        for from, tos of pairs
+            for to in tos
+                jump_neighbors[to.letter][to.position].push
+                    position: from
+                    letter: letter
+
+    {flat_neighbors, down_neighbors, up_neighbors, jump_neighbors}
 
 console.log generate_graph raw_graph
