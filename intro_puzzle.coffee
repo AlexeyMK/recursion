@@ -1,4 +1,9 @@
-#_ = require 'underscore'
+###
+   TODO:
+    - fix the "sometimes positions are ints and sometimes strings" problem
+    - optimize search:
+      - "already visited" list
+###
 
 raw_graph =
     flat_neighbors:
@@ -148,10 +153,15 @@ shortest_path = (from, to, graph) ->
     # does a BFS traversal with a queue
     # state on stack: [current_from, [history]]
     queue = [[from, []]]
+    history_size = 0
 
     while true
         [current, history] = queue[0]
-        echo current, history.length
+        if history_size < history.length
+            echo "now at paths of lengths #{history.length}"
+            history_size = history.length
+
+
         if current.position == to.position and
            current.stack.toString() == to.stack.toString()
             return history
