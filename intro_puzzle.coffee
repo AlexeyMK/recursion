@@ -1,10 +1,3 @@
-###
-   TODO:
-    - fix the "sometimes positions are ints and sometimes strings" problem
-    - optimize search:
-      - "already visited" list
-###
-
 raw_graph =
     flat_neighbors:
         0: [15, 14]
@@ -62,6 +55,11 @@ raw_graph =
 start = {position: 11, stack: ['A']}
 end = {position: 9, stack: ['C']}
 
+state_tostr = (state) ->
+    "#{state.position}, #{state.stack.join()}"
+
+state_equals = (first, other) ->
+    state_tostr(first) == state_tostr(other)
 
 immutable_push = (stack, element) ->
     stack.concat [element]
@@ -101,14 +99,6 @@ get_neighbors = (state) ->
             []
 
     [].concat flat_neighbors, down_neighbors, up_neighbors, jump_neighbors
-
-echo = console.log
-
-state_tostr = (state) ->
-    "#{state.position}, #{state.stack.join()}"
-
-state_equals = (first, other) ->
-    state_tostr(first) == state_tostr(other)
 
 generate_graph = (raw_graph) ->
     flat_neighbors = {}
@@ -159,16 +149,12 @@ shortest_path = (from, to, graph) ->
     # does a BFS traversal with a queue
     # state on stack: [current_from, [history]]
     queue = [[from, []]]
-    history_size = 0
-    explored = [state_tostr(from)] # store states as strings
+    # store states as strings so comparison works properly
+    explored = [state_tostr(from)]
 
     while true
         [current, history] = queue[0]
         queue = queue[1..]
-        if history_size < history.length
-            echo """now at paths of lengths #{history.length},
-              visited #{explored.length}"""
-            history_size = history.length
 
         if state_equals(current, to)
             return history
@@ -182,5 +168,4 @@ shortest_path = (from, to, graph) ->
                     queue.push([neighbor, new_history])
 
 graph = generate_graph raw_graph
-echo shortest_path(start, end, graph)
-
+console.log shortest_path(start, end, graph)
