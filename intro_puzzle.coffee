@@ -64,7 +64,7 @@ immutable_push = (stack, element) ->
 immutable_pop = (stack) ->
     stack[0...stack.length - 1]
 
-neighbors = (state) ->
+get_neighbors = (state) ->
     flat_neighbors =
         for position in graph.flat_neighbors[state.position]
             position: position
@@ -143,4 +143,25 @@ generate_graph = (raw_graph) ->
 
     {flat_neighbors, down_neighbors, up_neighbors, jump_neighbors}
 
-console.log generate_graph raw_graph
+shortest_path = (from, to, graph) ->
+    # does a BFS traversal with a queue
+    # state on stack: [current_from, [history]]
+    queue = [[from, []]]
+
+    while true
+        [current, history] = queue[0]
+        echo "hi", queue[0], current, to
+        if current.position == to.position and
+           current.stack.toString() == to.stack.toString()
+            return history
+        else
+            new_history = immutable_push(history, current)
+            neighbors = get_neighbors current
+            queued_neighbors =
+                for neighbor in neighbors
+                    [neighbor, new_history]
+            queue = queue[1..].concat(queued_neighbors)
+
+graph = generate_graph raw_graph
+echo shortest_path(start, end, graph)
+
