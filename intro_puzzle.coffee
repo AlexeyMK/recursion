@@ -64,6 +64,8 @@ immutable_push = (stack, element) ->
 immutable_pop = (stack) ->
     stack[0...stack.length - 1]
 
+last = (arr) -> arr[arr.length - 1]
+
 get_neighbors = (state) ->
     flat_neighbors =
         for position in graph.flat_neighbors[state.position]
@@ -77,7 +79,7 @@ get_neighbors = (state) ->
 
     up_neighbors =
         if state.stack.length > 0
-            top = _.last state.stack
+            top = last state.stack
             for position in graph.up_neighbors[top][state.position]
                 position: position
                 stack: immutable_pop state.stack
@@ -86,14 +88,14 @@ get_neighbors = (state) ->
 
     jump_neighbors =
         if state.stack.length > 0
-            top = _.last state.stack
+            top = last state.stack
             for {position, letter} in graph.jump_neighbors[top][state.position]
                 position: position,
                 stack: immutable_push (immutable_pop state.stack), letter
         else
             []
 
-    _.concat flat_neighbors, down_neighbors, up_neighbors, jump_neighbors
+    [].concat flat_neighbors, down_neighbors, up_neighbors, jump_neighbors
 
 echo = console.log
 
@@ -116,7 +118,6 @@ generate_graph = (raw_graph) ->
         up_neighbors[letter] = {}
         for node in [0..15]
             up_neighbors[letter][node] = []
-
     for from, tos of raw_graph.down_neighbors
         for to in tos
             up_neighbors[to.letter][to.position].push(from)
@@ -150,7 +151,7 @@ shortest_path = (from, to, graph) ->
 
     while true
         [current, history] = queue[0]
-        echo "hi", queue[0], current, to
+        echo current, history.length
         if current.position == to.position and
            current.stack.toString() == to.stack.toString()
             return history
